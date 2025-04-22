@@ -32,10 +32,19 @@ impl Settings {
             settings.discord_token = token;
         }
         if let Ok(guilds) = env::var("GUILD_IDS") {
-            // Only accept JSON array format
-            let ids = serde_json::from_str::<Vec<u64>>(&guilds)
-                .context("GUILD_IDS must be a JSON array, e.g. [123456789,987654321]")?;
-            settings.guild_ids = Some(ids);
+            // Try to parse as JSON array first
+            let guilds = guilds.trim();
+            if let Ok(ids) = serde_json::from_str::<Vec<u64>>(guilds) {
+                settings.guild_ids = Some(ids);
+            } else {
+                // If JSON parsing fails, try to parse as a single ID
+                if let Ok(id) = guilds.parse::<u64>() {
+                    settings.guild_ids = Some(vec![id]);
+                } else {
+                    // If both parsing attempts fail, return an error with guidance
+                    return Err(anyhow::anyhow!("GUILD_IDS must be either a single numeric ID or a JSON array, e.g. [123456789,987654321]"));
+                }
+            }
         }
         if let Ok(channel) = env::var("CHANNEL_ID") {
             if let Ok(id) = channel.parse() {
