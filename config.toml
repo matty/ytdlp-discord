@@ -1,0 +1,12 @@
+#discord_token = ""
+
+output_dir = "./output"
+
+# Comma-separated list of allowed guild (server) IDs
+#guild_ids = []
+
+# Only listen for messages in this channel ID (optional)
+#channel_id = 
+
+# Optional: Path to cookies file for yt-dlp (default: config/cookies.txt if present)
+cookies_path = "config/cookies.txt"
