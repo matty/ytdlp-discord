@@ -112,7 +112,7 @@ impl EventHandler for Handler {
                     cookies_path.as_deref(),
                 ).await {
                     Ok(_) => {
-                        let _ = msg_channel.say(&ctx_clone.http, format!("Downloaded: {}", url)).await;
+                        let _ = msg_channel.say(&ctx_clone.http, format!("Downloaded: <{}>", url)).await;
                     }
                     Err(e) => {
                         let _ = msg_channel.say(&ctx_clone.http, format!("Failed to download {}: {}", url, e)).await;
