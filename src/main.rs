@@ -32,7 +32,9 @@ impl Settings {
             settings.discord_token = token;
         }
         if let Ok(guilds) = env::var("GUILD_IDS") {
-            let ids = guilds.split(',').filter_map(|s| s.trim().parse().ok()).collect();
+            // Only accept JSON array format
+            let ids = serde_json::from_str::<Vec<u64>>(&guilds)
+                .context("GUILD_IDS must be a JSON array, e.g. [123456789,987654321]")?;
             settings.guild_ids = Some(ids);
         }
         if let Ok(channel) = env::var("CHANNEL_ID") {
