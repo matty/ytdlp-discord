@@ -8,4 +8,5 @@ RUN apt-get update && apt-get install -y yt-dlp && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=builder /app/target/release/ytdlp-discord /usr/local/bin/ytdlp-discord
 COPY config.toml ./
+RUN mkdir -p /app/output
 CMD ["/usr/local/bin/ytdlp-discord"]
