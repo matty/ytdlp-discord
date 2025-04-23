@@ -3,7 +3,7 @@
 output_dir = "./output"
 
 # Comma-separated list of allowed guild (server) IDs
-#guild_ids = []
+#guild_id = 
 
 # Only listen for messages in this channel ID (optional)
 #channel_id = 

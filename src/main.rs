@@ -16,7 +16,7 @@ use config::Environment;
 struct Settings {
     discord_token: String,
     output_dir: String,
-    guild_ids: Option<Vec<u64>>,
+    guild_id: Option<u64>,
     channel_id: Option<u64>,
     cookies_path: Option<String>,
 }
@@ -31,19 +31,9 @@ impl Settings {
         if let Ok(token) = env::var("DISCORD_TOKEN") {
             settings.discord_token = token;
         }
-        if let Ok(guilds) = env::var("GUILD_IDS") {
-            // Try to parse as JSON array first
-            let guilds = guilds.trim();
-            if let Ok(ids) = serde_json::from_str::<Vec<u64>>(guilds) {
-                settings.guild_ids = Some(ids);
-            } else {
-                // If JSON parsing fails, try to parse as a single ID
-                if let Ok(id) = guilds.parse::<u64>() {
-                    settings.guild_ids = Some(vec![id]);
-                } else {
-                    // If both parsing attempts fail, return an error with guidance
-                    return Err(anyhow::anyhow!("GUILD_IDS must be either a single numeric ID or a JSON array, e.g. [123456789,987654321]"));
-                }
+        if let Ok(guild) = env::var("GUILD_ID") {
+            if let Ok(id) = guild.parse() {
+                settings.guild_id = Some(id);
             }
         }
         if let Ok(channel) = env::var("CHANNEL_ID") {
@@ -67,15 +57,15 @@ impl Settings {
 struct Handler {
     url_regex: Regex,
     output_dir: String,
-    allowed_guilds: Option<Vec<u64>>,
+    allowed_guild: Option<u64>,
     allowed_channel: Option<u64>,
     cookies_path: Option<String>,
 }
 
 impl Handler {
     fn is_allowed_guild(&self, guild_id: serenity::model::id::GuildId) -> bool {
-        match &self.allowed_guilds {
-            Some(ids) => ids.contains(&guild_id.get()),
+        match &self.allowed_guild {
+            Some(id) => guild_id.get() == *id,
             None => true,
         }
     }
@@ -137,9 +127,9 @@ impl EventHandler for Handler {
 
     async fn ready(&self, ctx: Context, ready: Ready) {
         info!("Connected as {}", ready.user.name);
-        if let Some(ref allowed_guilds) = self.allowed_guilds {
+        if let Some(ref allowed_guilds) = self.allowed_guild {
             for guild in ready.guilds {
-                if !allowed_guilds.contains(&guild.id.get()) {
+                if guild.id.get() != *allowed_guilds {
                     info!("Leaving unauthorized guild: {}", guild.id);
                     if let Err(e) = guild.id.leave(&ctx.http).await {
                         error!("Failed to leave guild {}: {}", guild.id, e);
@@ -193,7 +183,7 @@ async fn main() -> Result<()> {
     let handler = Handler {
         url_regex,
         output_dir: settings.output_dir.clone(),
-        allowed_guilds: settings.guild_ids.clone(),
+        allowed_guild: settings.guild_id,
         allowed_channel: settings.channel_id,
         cookies_path: settings.cookies_path.clone(),
     };
