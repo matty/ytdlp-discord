@@ -150,7 +150,8 @@ async fn download_url_with_cookies(
         .with_context(|| format!("Failed to create output directory: {}", output_dir))?;
     let mut cmd = tokio::process::Command::new("yt-dlp");
     cmd.arg(url)
-        .arg("-P").arg(output_dir);
+        .arg("-P").arg(output_dir)
+        .arg("-o").arg("%(id)s.%(ext)s"); // Use video id as filename
     if let Some(cookies) = cookies_path {
         log::info!("Using cookies file: {}", cookies);
         cmd.arg("--cookies").arg(cookies);
